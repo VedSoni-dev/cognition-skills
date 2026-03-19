@@ -1,0 +1,17 @@
+{
+  "name": "cognition",
+  "version": "0.1.0",
+  "description": "Cognition — AI learning canvas powered by Claude Code",
+  "main": "main.js",
+  "bin": {
+    "cognition": "./bin/cognition.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "dependencies": {
+    "electron": "^33.0.0",
+    "ws": "^8.18.0"
+  }
+}

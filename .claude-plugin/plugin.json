@@ -1,0 +1,9 @@
+{
+  "name": "cognition",
+  "description": "AI that watches what you learn and helps you remember it. Powered by the Cognition learning intelligence API.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Cognition"
+  },
+  "repository": "https://github.com/cognition-labs/cognition-skills"
+}

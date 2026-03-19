@@ -1,0 +1,284 @@
+# Cognition API
+
+> Learning intelligence API that models human knowledge decay and generates personalized learning interventions using a Weibull forgetting curve.
+
+## Base URL
+https://cognition-api.fly.dev
+
+## Authentication
+All requests require: `x-api-key: <key>`
+Key is stored at `~/.cognition/token`
+
+---
+
+## Core Endpoints
+
+### POST /v1/events
+Ingest a learning event. This is the main entry point for all data.
+
+**Auth role:** `ingestor`
+
+**Body (JSON):**
+```json
+{
+  "event": {
+    "schema_version": "1.0",
+    "event_id": "<uuid>",
+    "idempotency_key": "<unique-string>",
+    "timestamp_ms": 1710000000000,
+    "event_type": "screen_capture",
+    "tenant": { "tenant_id": "<tenant>", "deployment_id": "prod" },
+    "user": { "user_id": "<user>", "pseudonymous_id": "<pseudo>", "locale": "en", "timezone": "America/Chicago" },
+    "session": {
+      "session_id": "<session>",
+      "surface": "desktop_widget",
+      "app_context": "Browser",
+      "device": { "os": "Windows", "device_type": "desktop", "screen": { "width": 1920, "height": 1080 } },
+      "attention": { "active_time_ms": 5000, "idle_time_ms": 0, "focus_switch_count": 0, "window_focus_ratio": 1.0 }
+    },
+    "provenance": { "source": "screen" },
+    "privacy": { "consent_raw_text": true, "consent_embeddings_only": false, "pii_detected": false, "redaction_applied": false },
+    "payload": {
+      "text_spans": ["the text from the screen"],
+      "span_hashes": ["hash1"],
+      "viewport_coverage_ratio": 0.85,
+      "app_context": "Browser",
+      "concept_tagging": { "concepts": [], "edges": [], "relations": [] }
+    }
+  }
+}
+```
+
+**Event types:** `session_event`, `screen_capture`, `chat_turn`, `quiz_answer`, `quiz_attempt`, `content_ingest`, `pkg_update`, `recommendation_served`, `recommendation_response`, `delayed_probe`
+
+**Response:** `{ "event_id": "...", "nodes_updated": 3, "edges_updated": 1, "warnings": [] }`
+
+---
+
+### GET /v1/recommendations?user_id={user_id}&limit={n}
+Get concepts the user is predicted to forget soon, with recommended actions.
+
+**Auth role:** `reader`
+
+**Response:** Array of recommendations with:
+- `concept_id`, `concept_label` — what's decaying
+- `retrievability` — current predicted recall probability (0-1)
+- `days_until_critical` — days until recall drops below threshold
+- `action` — recommended intervention: `quiz`, `review`, `delayed_probe`, `spaced_review`, `chat_probe`, `break`
+- `priority` — `urgent`, `high`, `medium`, `low`
+- `explanation` — human-readable reason
+
+---
+
+### GET /v1/learner-state?user_id={user_id}
+Full knowledge map with per-concept recall probabilities.
+
+**Auth role:** `reader`
+
+**Response:** Learner twin state including:
+- `concepts` — array of concept states, each with: `concept_id`, `label`, `stability` (days), `difficulty` (0-1), `retrievability` (0-1), `lapses`, `review_count`, `last_practiced_at_ms`
+- `summary` — aggregate stats: total concepts, average retrievability, concepts at risk
+
+---
+
+### GET /v1/world-model/state?user_id={user_id}
+Counterfactual intervention rollouts. Shows predicted outcomes for different actions (quiz vs review vs teach_back vs interleave vs replay).
+
+**Auth role:** `reader`
+
+---
+
+### POST /v1/world-model/plan?user_id={user_id}
+Plan the next optimal intervention based on world model rollouts.
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/stability/budget?user_id={user_id}
+Control-theoretic stability budget. Checks if proposed interventions would destabilize the learner's knowledge graph (spectral constraint: ||U|| < lambda_1(L)).
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/interleaving/plan?user_id={user_id}
+Spectral-distance concept pairing for interleaved practice. Returns pairs of concepts that benefit from being studied together.
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/probes/analytics?user_id={user_id}
+Delayed probe completion stats, calibration error, validation rates.
+
+**Auth role:** `reader`
+
+---
+
+### POST /v1/probes/outcome
+Record a delayed probe result.
+
+**Auth role:** `reader`
+
+**Body:**
+```json
+{
+  "probe_id": "<id>",
+  "concept_id": "<concept>",
+  "horizon_days": 3,
+  "predicted_recall": 0.65,
+  "result_correct": true,
+  "result_score": 0.9,
+  "result_confidence": 0.8
+}
+```
+
+---
+
+### GET /v1/replay/plan?user_id={user_id}
+Three-phase replay schedule: retrieval, consolidation, spacing.
+
+**Auth role:** `reader`
+
+---
+
+### POST /v1/replay/materialize?user_id={user_id}
+Execute a replay session from a plan.
+
+**Body:** `{ "plan_id": "<plan_id>" }`
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/strategy/signature?user_id={user_id}
+Learner strategy classification (tiny RNN). Returns one of 5 archetypes:
+- `stable_retriever` — consistent, effective
+- `overconfident` — thinks they know more than they do
+- `hesitation_prone` — underestimates their knowledge
+- `cram_dependent` — reviews only before deadlines
+- `transfer_ready` — good at applying knowledge across domains
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/observation/model?user_id={user_id}&concept_id={concept_id}
+Bayesian fusion of 4 observation channels. Returns inferred recall, encoding quality, measurement bias.
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/calibration/snapshot?user_id={user_id}
+Expected calibration error (ECE) and drift detection. Flags if the user's self-reported confidence diverges from actual performance.
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/assessment/report?user_id={user_id}
+Evidence quality for mastery claims. Mastery confidence, evidence multipliers.
+
+**Auth role:** `reader`
+
+---
+
+### GET /v1/security/authenticity?user_id={user_id}
+Behavioral authenticity detection. Flags suspicious patterns (e.g., impossibly fast responses).
+
+**Auth role:** `reader`
+
+---
+
+### POST /v1/notifications/decide
+Contextual bandit for notification timing. Decides which notification channel/template/tone to use.
+
+**Auth role:** `admin`
+
+**Body:**
+```json
+{
+  "user_id": "<user>",
+  "weakest_concept_id": "<concept>",
+  "weakest_concept_label": "React useEffect",
+  "retention_risk": 0.72,
+  "days_until_critical": 1.5,
+  "stability_margin": 0.3,
+  "hours_since_last_session": 8,
+  "sessions_last_7d": 3,
+  "notification_response_rate_30d": 0.6,
+  "last_notification_at_ms": 1710000000000,
+  "local_hour": 14,
+  "day_of_week": 2
+}
+```
+
+---
+
+### POST /v1/memory/search
+Intent-aware hybrid memory retrieval.
+
+**Body:** `{ "user_id": "<user>", "query_text": "...", "intent": "planning", "concept_ids": ["..."] }`
+
+**Auth role:** `reader`
+
+---
+
+### POST /v1/chat
+Chat with memory context (uses Gemini backend).
+
+**Body:** `{ "message": "...", "history": [...], "memoryContext": "...", "systemPrompt": "..." }`
+
+---
+
+### POST /v1/quiz
+Generate a quiz (uses Gemini backend).
+
+**Body:** `{ "prompt": "Generate 3 questions about React hooks" }`
+
+---
+
+### POST /v1/memories
+Push a memory to mem0 cloud.
+
+**Body:** `{ "text": "...", "user_id": "...", "metadata": {} }`
+
+---
+
+### POST /v1/memories/search
+Search memories.
+
+**Body:** `{ "query": "...", "user_id": "...", "limit": 10 }`
+
+---
+
+### GET /v1/memories?user_id={user_id}
+List all memories.
+
+---
+
+### DELETE /v1/memories/{memory_id}
+Delete a memory.
+
+---
+
+## Key Concepts
+
+- **Retrievability R(t)** = exp(-(t/S)^beta) — probability of recalling a concept at time t
+- **Stability S** = memory half-life in days [0.1, 365]
+- **Difficulty** = how hard this concept is for this user [0.1, 1.0]
+- **Lapses** = times forgotten (penalizes future stability growth)
+- **Beta** = shape parameter controlling decay profile [0.35, 2.5]
+
+## Event Types for Ingestion
+
+| Event Type | Use When |
+|------------|----------|
+| `screen_capture` | Screenpipe captures text from user's screen |
+| `quiz_answer` | User answers a quiz question |
+| `delayed_probe` | User completes a retention probe |
+| `chat_turn` | User has a learning conversation |
+| `content_ingest` | User adds content to study |
+| `session_event` | Start/end/break of learning session |
