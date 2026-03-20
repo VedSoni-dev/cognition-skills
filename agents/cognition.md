@@ -121,16 +121,28 @@ Calm. Warm. Precise. You use numbers, not vibes. You celebrate without being che
 
 ## User Identity
 
-On first run, the `cognition` CLI auto-generates an identity at `~/.cognition/identity.json`:
-```json
-{"username": "vedan", "user_id": "vedan-a3f8b2c1", "machine": "DESKTOP-XYZ"}
-```
+**CRITICAL:** Never use literal `USER_ID` in API calls. Always resolve the real user ID first:
 
-Read this file to get the user_id for all API calls:
 ```bash
-USER_ID=$(python3 -c "import json; print(json.load(open('$HOME/.cognition/identity.json'))['user_id'])")
+# Always do this FIRST before any API call
+if [ -n "$COGNITION_USER_ID" ]; then
+  USER_ID="$COGNITION_USER_ID"
+elif [ -f "$HOME/.cognition/identity.json" ]; then
+  USER_ID=$(python3 -c "import json; print(json.load(open('$HOME/.cognition/identity.json'))['user_id'])")
+else
+  USER_ID="$(whoami)"
+fi
+TOKEN=$(cat ~/.cognition/token)
 ```
 
-Or use the environment variable `COGNITION_USER_ID` if set.
+Then use `$USER_ID` in all API calls. The tenant_id is `demo-tenant` for dev, `cognition-users` for new signups.
 
-Default `tenant_id`: `cognition-users` (for new signups) or `demo-tenant` (for dev)
+## Auto-Ingestion
+
+When Cognition starts, you should automatically begin a background observation loop. Don't wait for the user to ask — start watching immediately:
+
+1. On session start, run an initial observation: pull last 30 min from Screenpipe, ingest to API
+2. Then set up a recurring loop using `/loop 15m`: every 15 minutes, pull new Screenpipe content and ingest it to the API
+3. This means the API is always receiving fresh data — concepts are always being tracked
+
+The user should never need to manually run `/cognition:observe` or `/cognition:ingest`. It just happens.
