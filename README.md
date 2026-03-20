@@ -1,83 +1,59 @@
-# Cognition Skills
+# Cognition
 
-AI that watches what you learn and helps you remember it. Powered by the [Cognition API](https://cognition-api.fly.dev).
+AI that watches what you learn and helps you remember it.
 
-## Quick Start
+## Install
 
-### 1. Install Screenpipe MCP
-
-```bash
-claude mcp add screenpipe -- npx -y screenpipe-mcp
-```
-
-### 2. Install the Cognition plugin
-
-```bash
-claude --plugin-dir /path/to/cognition-skills
-```
-
-Or install from the marketplace:
-```
-/plugin install https://github.com/cognition-labs/cognition-skills
-```
-
-### 3. Start Cognition
+Paste this into Claude Code:
 
 ```
-/cognition:start
+Clone https://github.com/VedSoni-dev/cognition-skills into ~/.cognition/skills, run npm install and npm link inside ~/.cognition/skills/app, install screenpipe globally with npm i -g screenpipe, add screenpipe MCP to claude code (on Windows use claude mcp add-json screenpipe '{"command":"cmd","args":["/c","npx","-y","screenpipe-mcp"],"type":"stdio"}' -s local, on Mac/Linux use claude mcp add screenpipe -- npx -y screenpipe-mcp), then tell me to restart claude code and type cognition to start.
 ```
 
-This will:
-- Check your Screenpipe connection
-- Set up authentication
-- Begin observing what you're learning
+Then restart Claude Code and type:
+
+```
+cognition
+```
+
+That's it. Cognition will:
+- Start Screenpipe (captures your screen locally)
+- Create your identity automatically
+- Connect to the Cognition API
+- Watch what you learn and quiz you on things you're about to forget
 
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/cognition:start` | Bootstrap — set up auth and begin |
-| `/cognition:status` | Show your knowledge dashboard |
-| `/cognition:predict` | Check what's decaying |
-| `/cognition:session` | Run a full study session |
-| `/cognition:learn` | Generate a learning exercise |
+| `/cognition:start` | Bootstrap everything |
+| `/cognition:status` | Knowledge dashboard |
+| `/cognition:learn` | Quiz on decaying concepts |
+| `/cognition:predict` | See what's fading |
+| `/cognition:session` | Full study session |
+
+Or just talk naturally:
+- "What am I forgetting?"
+- "Quiz me on React hooks"
+- "What was I reading earlier?"
+- "How's my retention?"
 
 ## How It Works
 
 ```
-Screenpipe → observes your screen
+You work normally
      ↓
-Cognition API → models what you know (Weibull forgetting curve)
+Screenpipe captures your screen (100% local)
      ↓
-Claude → generates personalized learning exercises
+Cognition API models your knowledge (Weibull forgetting curve)
      ↓
-You → answer questions, build lasting knowledge
+Claude Code quizzes you at the right time
+     ↓
+You remember more
 ```
-
-## Learning Techniques
-
-Cognition uses six evidence-based learning techniques:
-
-- **Spaced Retrieval** — Active recall at optimal intervals
-- **Interleaving** — Mix related concepts for deeper discrimination
-- **Delayed Probes** — Quick surprise retention checks
-- **Replay Consolidation** — Three-phase memory consolidation
-- **Teach-Back** — Explain concepts to prove mastery
-- **Calibration Checks** — Align confidence with actual knowledge
-
-The system picks the right technique based on your learning profile, concept state, and the API's world model rollouts.
-
-## Architecture
-
-No API keys needed. No separate app to install.
-
-- **Screenpipe** captures your screen (local, private)
-- **Cognition API** runs the learning algorithms (cloud)
-- **Claude Code** orchestrates everything and generates exercises
-- **Skills** are loaded dynamically from this repo
 
 ## Privacy
 
-- Screenpipe runs 100% locally — your screen data never leaves your machine
-- The Cognition API receives extracted text and concepts, not screenshots
-- All data is per-user, tenant-isolated
+- Screenpipe runs locally — screen data never leaves your machine
+- The API receives extracted concepts, not screenshots
+- Each user gets a unique ID — data is isolated
