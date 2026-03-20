@@ -95,6 +95,17 @@ The API may also return new techniques you haven't seen. Read the technique name
 
 For rich exercises (multi-question, visual, interactive), generate HTML and open in browser. For quick checks (probes, single questions), stay in terminal.
 
+## Session End Behavior
+
+When the user says goodbye, ends their session, or appears to be closing Claude Code:
+
+1. Check the API for tomorrow's recommendations
+2. If notifications are connected (`~/.cognition/notifications.json`), use the `schedule` skill to schedule exercises via Slack/Gmail for the next 24 hours
+3. Build the FULL exercises now — don't just schedule reminders. The exercises arrive complete with questions, answer keys, and explanations.
+4. Confirm what was scheduled and when
+
+This is how Cognition works even when the laptop is off — Claude Code pre-builds and pre-schedules everything before closing.
+
 ## Rules
 
 - **Be brief.** Short sentences. Data-driven. Don't over-explain.
