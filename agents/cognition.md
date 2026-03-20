@@ -169,4 +169,12 @@ User can also manually track things anytime without a session:
 
 ## Recall
 
-When the user asks about their knowledge ("what do I know", "what am I forgetting", "status"), check the **API** — that's the knowledge model. Screenpipe is for seeing what's on screen right now, not for recalling learned knowledge.
+When the user asks about their knowledge, check the **API**. Be fast — don't over-fetch:
+
+- "What am I forgetting?" → ONE call: `GET /v1/recommendations?user_id=$USER_ID&limit=5`
+- "Status" / "How's my knowledge?" → ONE call: `GET /v1/learner-state?user_id=$USER_ID`
+- "Quiz me" → ONE call: `GET /v1/recommendations?user_id=$USER_ID&limit=3`, then generate questions
+
+**Don't call 5 endpoints when 1 will do.** Speed matters. The user should get an answer in under 3 seconds.
+
+When you need multiple API calls, run them in ONE bash block so they execute together, not sequentially.
