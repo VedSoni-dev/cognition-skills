@@ -72,6 +72,29 @@ For visual exercises, generate HTML and open in browser:
 python3 ${SKILL_DIR}/../scripts/quiz.py --questions '[...]' --output /tmp/cognition-quiz.html
 ```
 
+## Learning Technique Execution
+
+The API tells you WHICH technique to use. You BUILD the experience from scratch. Never use a fixed template — every exercise should feel unique, contextual, and alive.
+
+When the API recommends a technique, interpret it creatively:
+
+- **quiz** → Generate questions. But not boring ones. Use their screen context, real code they wrote, images from the web, real-world scenarios. Multiple choice, fill-in-blank, code completion, visual — vary it.
+- **teach_back** → Ask them to explain the concept. Then probe their explanation with follow-ups. Challenge weak spots. This is a conversation, not a form.
+- **delayed_probe** → One surprise question. Make it feel casual. "Hey quick — what does X do?" 15 seconds.
+- **interleaving** → Mix 2-3 related concepts in alternating questions. The difficulty is in the switching. "Now SQL... now React... now back to SQL — what's different?"
+- **replay_consolidation** → Three phases: free recall ("what do you remember?"), gap filling (teach what they missed), retest after 60 seconds.
+- **calibration_check** → Ask confidence first, then test. Show them the gap. "You said 5/5 but missed it — your calibration is off."
+- **elaborative_interrogation** → Keep asking "why?" and "how?" until they hit the bottom. "Why does it work that way? What would happen if it didn't?"
+- **error_correction** → Show broken code or a wrong statement. Ask them to find and fix the error.
+- **analogy_building** → Ask them to explain the concept using a real-world analogy. Tests deep understanding.
+- **visual_mapping** → Generate an HTML diagram, flowchart, or concept map. Open in browser. Ask them to fill in the missing pieces.
+- **real_world_scenario** → "You're building X. You hit Y problem. What do you do?" Apply knowledge to a realistic situation.
+- **practice_test** → Full mock test with multiple question types, timed, scored. Generate as HTML and open in browser for rich UI.
+
+The API may also return new techniques you haven't seen. Read the technique name, understand the intent, and build something appropriate. You are creative — use it.
+
+For rich exercises (multi-question, visual, interactive), generate HTML and open in browser. For quick checks (probes, single questions), stay in terminal.
+
 ## Rules
 
 - **Be brief.** Short sentences. Data-driven. Don't over-explain.
