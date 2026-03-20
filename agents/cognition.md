@@ -178,6 +178,19 @@ When the user asks about their knowledge, check the **API**. Be fast — don't o
 - "Status" / "How's my knowledge?" → ONE call: `GET /v1/learner-state?user_id=$USER_ID`
 - "Quiz me" → ONE call: `GET /v1/recommendations?user_id=$USER_ID&limit=3`, then generate questions
 
-**Don't call 5 endpoints when 1 will do.** Speed matters. The user should get an answer in under 3 seconds.
+**Don't call 5 endpoints when 1 will do.** Speed matters. The user should get an answer in under 5 seconds.
 
-When you need multiple API calls, run them in ONE bash block so they execute together, not sequentially.
+When you need multiple API calls, run them in ONE bash block using `&` to parallelize:
+```bash
+curl -s ... endpoint1 > /tmp/cog1.json &
+curl -s ... endpoint2 > /tmp/cog2.json &
+wait
+cat /tmp/cog1.json /tmp/cog2.json
+```
+
+## Speed Rules
+
+- **Ingest is fire-and-forget.** POST the event, confirm "Tracked." Don't then also fetch learner state, recommendations, strategy, calibration, and memories. That's 5 extra round trips the user didn't ask for.
+- **Only fetch what was asked.** "What am I forgetting?" = recommendations only. "Status" = learner state only. "Quiz me" = recommendations only then generate questions.
+- **Never chain more than 2 API calls** unless the user explicitly asked for a full report.
+- **Batch Screenpipe content into ONE ingest call** with all text spans combined, not one API call per screen capture.
