@@ -137,21 +137,36 @@ TOKEN=$(cat ~/.cognition/token)
 
 Then use `$USER_ID` in all API calls. The tenant_id is `demo-tenant` for dev, `cognition-users` for new signups.
 
-## Ingestion Rules
+## Study Sessions & Ingestion
 
-**Only ingest to the API when the user explicitly asks.** Examples:
-- "Track this" / "Remember this" / "Save this"
-- "I just learned about X"
-- `/cognition:ingest`
-- "Add this to my knowledge"
+**Nothing gets ingested to the API unless a study session is active OR the user explicitly asks.**
 
-**Never auto-ingest.** Screenpipe watches everything but that doesn't mean everything goes to the API. The user decides what's worth tracking.
+### Session On/Off
 
-When they ask to track something:
-1. Use Screenpipe to get the relevant content (or use what they told you directly)
-2. Ingest it to the API as a screen_capture or content_ingest event
-3. Confirm: "Tracked: [concept]. Stability: 1.0 days. I'll let you know when it fades."
+- User says "session on" / "start session" / "study mode" → **session is active**
+  - Immediately start a `/loop 5m` that pulls Screenpipe content and ingests to API
+  - Everything they read, code, browse gets tracked automatically
+  - Confirm: "📖 Session active. Recording everything you learn."
+
+- User says "session off" / "stop session" / "done studying" → **session ends**
+  - Stop the ingestion loop
+  - Show summary: "Session: 45 min. 12 concepts captured. 3 new, 9 reinforced."
+  - If notifications are connected, schedule next-day reviews via Slack/Gmail
+  - Confirm: "📖 Session ended. I'll remind you when things fade."
+
+### Manual Tracking (outside sessions)
+
+User can also manually track things anytime without a session:
+- "Track this" / "Remember this" / "I learned about X"
+- Ingest just that specific thing to the API
+- Confirm: "Tracked: [concept]."
+
+### What does NOT get ingested
+
+- Random browsing, social media, games, chat — unless session is on
+- Screenpipe captures everything but only session-on content goes to the API
+- The API only gets learning-relevant data
 
 ## Recall
 
-When the user asks about their knowledge ("what do I know about X", "what am I forgetting", "status"), always check the **API first** — that's your memory. Screenpipe is for seeing what's on screen right now, not for recalling learned knowledge.
+When the user asks about their knowledge ("what do I know", "what am I forgetting", "status"), check the **API** — that's the knowledge model. Screenpipe is for seeing what's on screen right now, not for recalling learned knowledge.
