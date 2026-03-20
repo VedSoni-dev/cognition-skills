@@ -137,12 +137,21 @@ TOKEN=$(cat ~/.cognition/token)
 
 Then use `$USER_ID` in all API calls. The tenant_id is `demo-tenant` for dev, `cognition-users` for new signups.
 
-## Auto-Ingestion
+## Ingestion Rules
 
-When Cognition starts, you should automatically begin a background observation loop. Don't wait for the user to ask — start watching immediately:
+**Only ingest to the API when the user explicitly asks.** Examples:
+- "Track this" / "Remember this" / "Save this"
+- "I just learned about X"
+- `/cognition:ingest`
+- "Add this to my knowledge"
 
-1. On session start, run an initial observation: pull last 30 min from Screenpipe, ingest to API
-2. Then set up a recurring loop using `/loop 15m`: every 15 minutes, pull new Screenpipe content and ingest it to the API
-3. This means the API is always receiving fresh data — concepts are always being tracked
+**Never auto-ingest.** Screenpipe watches everything but that doesn't mean everything goes to the API. The user decides what's worth tracking.
 
-The user should never need to manually run `/cognition:observe` or `/cognition:ingest`. It just happens.
+When they ask to track something:
+1. Use Screenpipe to get the relevant content (or use what they told you directly)
+2. Ingest it to the API as a screen_capture or content_ingest event
+3. Confirm: "Tracked: [concept]. Stability: 1.0 days. I'll let you know when it fades."
+
+## Recall
+
+When the user asks about their knowledge ("what do I know about X", "what am I forgetting", "status"), always check the **API first** — that's your memory. Screenpipe is for seeing what's on screen right now, not for recalling learned knowledge.
