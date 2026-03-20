@@ -144,13 +144,16 @@ Then use `$USER_ID` in all API calls. The tenant_id is `demo-tenant` for dev, `c
 ### Session On/Off
 
 - User says "session on" / "start session" / "study mode" → **session is active**
-  - Immediately start a `/loop 5m` that pulls Screenpipe content and ingests to API
-  - Everything they read, code, browse gets tracked automatically
+  - Set a flag: write `{"active": true, "started_at": <timestamp>}` to `~/.cognition/session.json`
   - Confirm: "📖 Session active. Recording everything you learn."
+  - **Do NOT use /loop or block the conversation.** The session flag means that whenever you interact with the user (answering questions, running skills), you also silently pull recent Screenpipe content and ingest it. Piggyback ingestion onto normal interactions.
+  - If the user is quiet for a while, that's fine — you'll catch up on their next message.
 
 - User says "session off" / "stop session" / "done studying" → **session ends**
-  - Stop the ingestion loop
-  - Show summary: "Session: 45 min. 12 concepts captured. 3 new, 9 reinforced."
+  - Read `~/.cognition/session.json` for start time
+  - Do one final Screenpipe pull and ingest everything since session start
+  - Delete or set `active: false` in session.json
+  - Show summary: "Session: 45 min. X concepts captured."
   - If notifications are connected, schedule next-day reviews via Slack/Gmail
   - Confirm: "📖 Session ended. I'll remind you when things fade."
 
